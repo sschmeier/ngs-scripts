@@ -28,7 +28,7 @@ LICENCE
 template version: 1.1 (2015/12/10)
 """
 __version__='0.1.1'
-__date__='2016/03/03'
+__date__='2016/03/04'
 __email__='s.schmeier@gmail.com'
 __author__='Sebastian Schmeier'
 import sys, os, os.path, argparse, csv, collections
@@ -48,9 +48,9 @@ def parse_cmdline():
     sEpilog = 'Copyright %s (%s)' %(__author__, __email__)
 
     oParser = argparse.ArgumentParser(description=sDescription,
-                                      version=sVersion,
                                       epilog=sEpilog)
- 
+
+    oParser.add_argument('--version', action='version', version='%s'%(sVersion))
     oParser.add_argument('sDir',
                          metavar='DIR',
                          type=str,
