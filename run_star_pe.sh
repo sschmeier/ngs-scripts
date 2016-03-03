@@ -15,7 +15,7 @@ outdir_2=${outdir}/star_pe.${now};
 mkdir ${outdir_2};
 
 # load genome into mem
-/mnt/DATA1/seb/bin/STAR_2.5.1b/STAR --runThreadN 2 --genomeLoad LoadAndExit --genomeDir ${genomeindex};
+/mnt/DATA1/seb/bin/STAR_2.5.1b/STAR --runThreadN 2 --genomeLoad LoadAndExit --genomeDir ${genomeindex} 2>> ${errfile} >> ${outfile};
 
 for i in `ls ${dir}/*_1.fastq.trimmed.gz`; do
     echo ${i} >> ${errfile};
@@ -27,5 +27,5 @@ for i in `ls ${dir}/*_1.fastq.trimmed.gz`; do
     echo "----------" >> ${outfile};
 done;
  
-/mnt/DATA1/seb/bin/STAR_2.5.1b/STAR --runThreadN 2 --genomeLoad Remove --genomeDir ${genomeindex};
+/mnt/DATA1/seb/bin/STAR_2.5.1b/STAR --runThreadN 2 --genomeLoad Remove --genomeDir ${genomeindex} 2>> ${errfile} >> ${outfile};
 
