@@ -8,7 +8,7 @@ now=$(date +"%Y-%d-%m_%H%M%S")
 errfile=${outdir}/sickle_pe.${now}.stderr;
 outfile=${outdir}/sickle_pe.${now}.stdout;
 
-outdir_2=${outdir_pre}/sickle_pe.${now}
+outdir_2=${outdir}/sickle_pe.${now}
 mkdir ${outdir_2}
 
 for i in `ls ${dir}/*_1*fastq*`; do

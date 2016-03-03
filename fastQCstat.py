@@ -1,29 +1,33 @@
 #!/usr/bin/env python
 """
 NAME: fastQCstat
-=========
+================
 
 DESCRIPTION
 ===========
+Get summary statistics for many fastqc result zip-files in a directory (including all subfolders).
 
 INSTALLATION
 ============
+Copy file into directory.
 
 USAGE
 =====
+Use `python fastQCstat.py DIR`.
 
 VERSION HISTORY
 ===============
 
+0.1.1   2016/03/04    Adjust output.
 0.1.0   2016/03/03    Initial version.
 
 LICENCE
 =======
-2015, copyright Sebastian Schmeier (s.schmeier@gmail.com), http://sschmeier.com
+2016, copyright Sebastian Schmeier (s.schmeier@gmail.com), http://sschmeier.com
 
 template version: 1.1 (2015/12/10)
 """
-__version__='0.1.0'
+__version__='0.1.1'
 __date__='2016/03/03'
 __email__='s.schmeier@gmail.com'
 __author__='Sebastian Schmeier'
@@ -46,7 +50,6 @@ def parse_cmdline():
     oParser = argparse.ArgumentParser(description=sDescription,
                                       version=sVersion,
                                       epilog=sEpilog)
-
  
     oParser.add_argument('sDir',
                          metavar='DIR',
@@ -65,33 +68,21 @@ def parse_cmdline():
     oArgs = oParser.parse_args()
     return oArgs, oParser
 
-def load_file(s):
-    """ LOADING FILES """
-    if s in ['-', 'stdin']:
-        oF = sys.stdin
-    elif s.split('.')[-1] == 'gz':
-        oF = gzip.open(s)
-    elif s.split('.')[-1] == 'bz2':
-        oF = bz2.BZFile(s)
-    elif s.split('.')[-1] == 'zip':
-        oF = zipfile.Zipfile(s)
-    else:
-        oF = open(s)
-    return oF
-
 def main():
     oArgs, oParser = parse_cmdline()
 
+    # collect all files
     aFiles = []
     for dirpath, dirnames, filenames in os.walk(oArgs.sDir):
         aFiles.extend(glob.glob(os.path.join(dirpath,'*_fastqc.zip')))
-
+    
+    if len(aFiles) <= 0:
+        oParser.error('No fastqc-zip files found in %s. EXIT.'%oArgs.sDir)
+    
     dModulesFiles = collections.OrderedDict()
   
     # Set dict to convert module results to integer scores:
-    scores = {'pass': 1,
-              'warn': 0,
-              'fail': -1}
+    scores = {'pass': 1, 'warn': 0, 'fail': -1}
 
     # List to collect module scores for each '_fastqc.zip' file:
     dMod_scores = collections.OrderedDict()
@@ -100,7 +91,9 @@ def main():
     for sFile in aFiles:
         archive = zipfile.ZipFile(sFile, 'r') # open '_fastqc.zip' file
         aFiles_inarchive = archive.namelist() # return list of archive members
-        fname = [member for member in aFiles_inarchive if 'fastqc_data.txt' in member][0] # find 'fastqc_data.txt' in members
+        
+        # find 'fastqc_data.txt' in members
+        fname = [member for member in aFiles_inarchive if 'fastqc_data.txt' in member][0] 
         data = archive.open(fname) # open 'fastqc_data.txt'
         
         # Get module scores for this file:
@@ -128,21 +121,20 @@ def main():
     with open('%s_fastQCstat_table.txt'%(oArgs.sOutPrefix), 'w') as f:
         oWriter = csv.writer(f, delimiter = '\t')
         bHead = 1
-
         for sF in dMod_scores:
-            a = []
+            a = [sF]
             aModules = dMod_scores[sF].keys()
             assert len(aModules) == 12
             aModules.sort()
             # write header?
             if bHead:
-                aHeader =  aModules + ['File']
+                aHeader =  ['File'] + aModules
                 oWriter.writerow(aHeader)
                 bHead = 0
-                
+
             for sMod in aModules:
                 a.append(dMod_scores[sF][sMod])
-            a.append(sF)
+
             oWriter.writerow(a)
     f.close()
 
@@ -160,16 +152,14 @@ def main():
             a = [iLenPass, iLenWarn, iLenFail, sMod]
             oWriter.writerow(a)
 
-        f.write('---\n# files analysed: %i\n---\n'%iFiles)
+        f.write('>>># files analysed: %i\n'%iFiles)
         for sMod in dModulesFiles:
             if len(dModulesFiles[sMod]['fail']) > 0:
-                f.write('FAILED %s:\n'%(sMod))
+                f.write('>>>FAILED %s:\n'%(sMod))
                 for sF in dModulesFiles[sMod]['fail']:
                     f.write('%s\n'%sF)
             
     f.close()
-
-
     return
 
 if __name__ == '__main__':
