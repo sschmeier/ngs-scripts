@@ -10,14 +10,13 @@ dir=$1;
 outdir=$2;
 genomeindex=$3;
 
-# unique id
-uuid=$(uuidgen);
+now=$(date +"%Y-%d-%m_%H%M%S")
 
 # set error and stdout file
-errfile=${outdir}/hisat2_se.${uuid}.stderr
-outfile=${outdir}/hisat2_se.${uuid}.stdout
+errfile=${outdir}/hisat2_se.${now}.stderr
+outfile=${outdir}/hisat2_se.${now}.stdout
 
-outdir_2=${outdir}/hisat2_se.${uuid};
+outdir_2=${outdir}/hisat2_se.${now};
 mkdir ${outdir_2};
 
 for i in `ls ${dir}/*.fastq.trimmed.gz*`; do

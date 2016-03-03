@@ -3,13 +3,12 @@
 dir=$1;
 outdir=$2;
 
-# unique id
-uuid=$(uuidgen);
+now=$(date +"%Y-%d-%m_%H%M%S")
 
-errfile=${outdir}/sickle_se.${uuid}.stderr;
-outfile=${outdir}/sickle_se.${uuid}.stdout;
+errfile=${outdir}/sickle_se.${now}.stderr;
+outfile=${outdir}/sickle_se.${now}.stdout;
 
-$outdir_2=${outdir_pre}/sickle_se.${uuid}
+$outdir_2=${outdir_pre}/sickle_se.${now}
 mkdir ${outdir_2}
 
 for i in `ls ${dir}/*fastq*`; do

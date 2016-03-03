@@ -5,14 +5,13 @@ dir=$1;
 outdir=$2;
 genomeindex=$3;
 
-# unique id
-uuid=$(uuidgen);
+now=$(date +"%Y-%d-%m_%H%M%S")
 
 # set error and stdout file
-errfile=${outdir}/star_pe.${uuid}.stderr
-outfile=${outdir}/star_pe.${uuid}.stdout
+errfile=${outdir}/star_pe.${now}.stderr
+outfile=${outdir}/star_pe.${now}.stdout
 
-outdir_2=${outdir}/star_pe.${uuid};
+outdir_2=${outdir}/star_pe.${now};
 mkdir ${outdir_2};
 
 # load genome into mem
