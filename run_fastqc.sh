@@ -2,13 +2,12 @@
 dir=$1;
 outdir=$2;
 
-# unique id
-uuid=$(uuidgen);
+now=$(date +"%Y-%d-%m_%H%M%S")
 
-errfile=${outdir}/fastqc.${uuid}.stderr;
-outfile=${outdir}/fastqc.${uuid}.stdout;
+errfile=${outdir}/fastqc.${now}.stderr;
+outfile=${outdir}/fastqc.${now}.stdout;
 
-outdir_2=${outdir}/fastqc.${uuid};
+outdir_2=${outdir}/fastqc.${now};
 mkdir ${outdir_2};
 
 fastqc -q -o ${outdir_2} ${dir}/*fastq* 2>> ${errfile} >> ${outfile};
