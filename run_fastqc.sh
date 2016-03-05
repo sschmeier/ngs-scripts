@@ -2,7 +2,7 @@
 dir=$1;
 outdir=$2;
 
-now=$(date +"%Y-%d-%m_%H%M%S")
+now=$(date +"%Y-%m-%d_%H%M%S")
 
 errfile=${outdir}/fastqc.${now}.stderr;
 outfile=${outdir}/fastqc.${now}.stdout;

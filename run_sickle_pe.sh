@@ -3,7 +3,7 @@
 dir=$1;
 outdir=$2;
 
-now=$(date +"%Y-%d-%m_%H%M%S")
+now=$(date +"%Y-%m-%d_%H%M%S")
 
 errfile=${outdir}/sickle_pe.${now}.stderr;
 outfile=${outdir}/sickle_pe.${now}.stdout;

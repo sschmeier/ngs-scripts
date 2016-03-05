@@ -5,7 +5,7 @@ dir=$1;
 outdir=$2;
 genomeindex=$3;
 
-now=$(date +"%Y-%d-%m_%H%M%S")
+now=$(date +"%Y-%m-%d_%H%M%S")
 
 # set error and stdout file
 errfile=${outdir}/star_pe.${now}.stderr
@@ -26,7 +26,7 @@ for i in `ls ${dir}/*_1.fastq.trimmed.gz`; do
     echo ${i} >> ${outfile};
 
     nice STAR --readFilesIn ${i} $(echo ${i} | sed 's/_1/_2/g') \
-         --outFileNamePrefix ${outdir_2}/$(basename ${i} | sed 's/_1.fastq.trimmed.gz//g') \
+         --outFileNamePrefix ${outdir_2}/$(basename ${i} | sed 's/_1.fastq.trimmed.gz/_/g') \
          --limitBAMsortRAM 20000000000 \
          --genomeLoad LoadAndKeep \
          --outFilterMultimapNmax 1 \

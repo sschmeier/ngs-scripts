@@ -10,7 +10,7 @@ dir=$1;
 outdir=$2;
 genomeindex=$3;
 
-now=$(date +"%Y-%d-%m_%H%M%S")
+now=$(date +"%Y-%m-%d_%H%M%S")
 
 # set error and stdout file
 errfile=${outdir}/hisat2_se.${now}.stderr
