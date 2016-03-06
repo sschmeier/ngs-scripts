@@ -30,3 +30,5 @@ for i in `ls ${dir}/*.bam`; do
     echo "----------" >> ${outfile};
 done;
  
+gzip ${outdir_2}/*.narrowPeak
+gzip ${outdir_2}/*.bed
