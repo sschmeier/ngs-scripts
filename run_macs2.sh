@@ -32,3 +32,5 @@ done;
  
 gzip ${outdir_2}/*.narrowPeak
 gzip ${outdir_2}/*.bed
+rm ${outdir_2}/*.xls
+rm ${outdir_2}/*.r

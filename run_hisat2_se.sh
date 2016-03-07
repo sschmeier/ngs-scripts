@@ -23,7 +23,9 @@ for i in `ls ${dir}/*.fastq.trimmed.gz*`; do
     echo ${i} >> ${errfile};
     echo ${i} >> ${outfile};
     
-    hisat2 \
+    resultfile=${outdir_2}/$(basename $i | sed 's/.fastq.trimmed.gz/.sam/g')
+    
+    nice hisat2 \
      --threads 2 \
      --reorder \
      -q \
@@ -32,8 +34,14 @@ for i in `ls ${dir}/*.fastq.trimmed.gz*`; do
      --all \
      -x ${genomeindex} \
      -U ${i} \
-     -S ${outdir_2}/$(basename $i | sed 's/.fastq.trimmed.gz/.sam/g') \
+     -S ${resultfile} \
      2>> ${errfile} >> ${outfile}; 
+    
+    #nice samtools view -bS ${resultfile} > ${resultfile}.bam
+    #rm ${resultfile}
+    
+    #samtools sort ${resultfile}.bam ${resultfile}.sorted.bam
+    #rm ${resultfile}.bam
 
     echo "----------" >> ${errfile};
     echo "----------" >> ${outfile};
