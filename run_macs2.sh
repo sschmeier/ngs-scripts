@@ -1,5 +1,6 @@
 #!/bin/bash
 # USAGE: script.sh in-dir out-dir genomesize
+# recommendations taken from: http://bib.oxfordjournals.org/content/early/2016/01/12/bib.bbv110.full
 
 dir=$1;
 outdir=$2;
@@ -23,7 +24,8 @@ for i in `ls ${dir}/*.bam`; do
                    -t ${i} \
                    -f BAM \
                    -g ${genomesize} \
-                   -q 0.05 \
+                   -q 0.1 \
+	           --call-summits \ 
                    2>> ${errfile} >> ${outfile}; 
 
     echo "----------" >> ${errfile};
