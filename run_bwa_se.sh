@@ -19,13 +19,15 @@ for i in `ls ${dir}/*.fastq.gz*`; do
     echo ${i} >> ${outfile};
     
     fileprefix=${outdir_2}/$(basename ${i})
-
-    nice bwa aln -t 4 ${genomeindex} ${i} > ${fileprefix}.sai 
-    nice bwa samse ${genomeindex} ${fileprefix}.sai ${i} | \
-	samtools view -Shu -q 1 - | \
-	samtools sort - - | \
-	samtools rmdup -s - - | \
-	> ${fileprefix}_sorted_nodup.bam 
+    
+    # align, remove multimapper, sort, remove,  duplicate reads
+    nice bwa aln -t 4 ${genomeindex} ${i} -f ${fileprefix}.sai >> ${outfile} 2>> ${errfile}
+    nice bwa samse ${genomeindex} ${fileprefix}.sai ${i} 2>> ${errfile} | \
+	samtools view -Shu -q 1 - 2>> ${errfile} | \
+	samtools sort - 2>> ${errfile} | \
+	samtools rmdup -s - ${outdir_2}/$(basename ${i} | sed s/.fastq.gz/_sorted_nodup.bam/g) >> ${outfile} 2>> ${errfile}
+    
+    rm ${fileprefix}.sai;
 
     echo "----------" >> ${errfile};
     echo "----------" >> ${outfile};
