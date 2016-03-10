@@ -24,10 +24,17 @@ for i in `ls ${dir}/*_1.fastq.gz`; do
     echo "${i},${i2}" >> ${outfile};
 
     # align
+    #  -t 4 = use 4 threads
+    #  -f outfile
     nice bwa aln -t 4 ${genomeindex} ${i} -f ${fileprefix1}.sai >> ${outfile} 2>> ${errfile}
     nice bwa aln -t 4 ${genomeindex} ${i2} -f ${fileprefix2}.sai >> ${outfile} 2>> ${errfile}
 
     # remove multimapper, sort, remove,  duplicate reads
+    # samtools view:
+    #  -S = input format is auto-detected
+    #  -u = uncompressed BAM output (implies -b)
+    #  -h = include header in SAM output
+    #  -q 1 = remove all reads with quality score 0, which are multimappers
     nice bwa sampe ${genomeindex} ${fileprefix1}.sai ${fileprefix2}.sai ${i} ${i2} 2>> ${errfile} | \
 	samtools view -Shu -q 1 - 2>> ${errfile} | \
 	samtools sort - 2>> ${errfile} | \

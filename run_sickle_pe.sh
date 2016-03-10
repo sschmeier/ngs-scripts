@@ -15,6 +15,14 @@ for i in `ls ${dir}/*_1*fastq*`; do
     echo ${i} >> ${errfile};
     echo ${i} >> ${outfile};
 
+    # sickle:
+    #  -f, --pe-file1, Input paired-end forward fastq file (Input files must have same number of records)
+    #  -r, --pe-file2, Input paired-end reverse fastq file
+    #  -o, --output-pe1, Output trimmed forward fastq file
+    #  -p, --output-pe2, Output trimmed reverse fastq file. Must use -s option.
+    #  -t, --qual-type,  = sanger
+    #  -g, --gzip-output, Output gzipped files.
+
     sickle pe \
 -f ${i} \
 -r $(echo ${i} | sed 's/_1/_2/g') \

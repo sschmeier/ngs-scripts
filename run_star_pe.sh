@@ -24,7 +24,11 @@ STAR --outFileNamePrefix ${outdir_2} \
 for i in `ls ${dir}/*_1.fastq.trimmed.gz`; do
     echo ${i} >> ${errfile};
     echo ${i} >> ${outfile};
-
+    
+    # --limitBAMsortRAM NEEDS TO BE SET IF SHARED GENOME SHOULD BE USED
+    # --outFilterMultimapNmax 1 = filter out multimappers
+    # --alignIntronMax 1 = dont split up reads
+    # --alignEndsType EndToEnd = dont split up reads
     nice STAR --readFilesIn ${i} $(echo ${i} | sed 's/_1/_2/g') \
          --outFileNamePrefix ${outdir_2}/$(basename ${i} | sed 's/_1.fastq.trimmed.gz/_/g') \
          --limitBAMsortRAM 20000000000 \
