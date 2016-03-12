@@ -8,10 +8,10 @@ genomeindex=$3;
 now=$(date +"%Y-%m-%d_%H%M%S")
 
 # set error and stdout file
-errfile=${outdir}/bwa_se.${now}.stderr
-outfile=${outdir}/bwa_se.${now}.stdout
+errfile=${outdir}/bwa_pe.${now}.stderr
+outfile=${outdir}/bwa_pe.${now}.stdout
 
-outdir_2=${outdir}/bwa_se.${now};
+outdir_2=${outdir}/bwa_pe.${now};
 mkdir ${outdir_2};
 
 for i in `ls ${dir}/*_1.fastq.gz`; do
