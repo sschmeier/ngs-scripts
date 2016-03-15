@@ -22,7 +22,7 @@ STAR --outFileNamePrefix ${outdir_2} \
      --genomeDir ${genomeindex} \
      2>> ${errfile} >> ${outfile};
 
-for i in `ls ${dir}/*.fastq.trimmed.gz*`; do
+for i in `ls ${dir}/*.fastq.gz*`; do
     echo ${i} >> ${errfile};
     echo ${i} >> ${outfile};
     
@@ -30,7 +30,7 @@ for i in `ls ${dir}/*.fastq.trimmed.gz*`; do
     # --outFilterMultimapNmax 1 = filter out multimappers
     # --alignIntronMax 1 = dont split up reads
     # --alignEndsType EndToEnd = dont split up reads
-    nice STAR --outFileNamePrefix ${outdir_2}/$(basename ${i} | sed 's/.fastq.trimmed.gz/_/g') \
+    nice STAR --outFileNamePrefix ${outdir_2}/$(basename ${i} | sed 's/.fastq.gz/_/g') \
          --limitBAMsortRAM 20000000000 \
          --genomeLoad LoadAndKeep \
          --outFilterMultimapNmax 1 \

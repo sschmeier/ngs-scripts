@@ -19,11 +19,11 @@ outfile=${outdir}/hisat2_se.${now}.stdout
 outdir_2=${outdir}/hisat2_se.${now};
 mkdir ${outdir_2};
 
-for i in `ls ${dir}/*.fastq.trimmed.gz*`; do
+for i in `ls ${dir}/*.fastq.gz*`; do
     echo ${i} >> ${errfile};
     echo ${i} >> ${outfile};
     
-    resultfile=${outdir_2}/$(basename $i | sed 's/.fastq.trimmed.gz/.sam/g')
+    resultfile=${outdir_2}/$(basename $i | sed 's/.fastq.gz/.sam/g')
     
     nice hisat2 \
      --threads 2 \

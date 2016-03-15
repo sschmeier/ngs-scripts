@@ -11,7 +11,7 @@ outfile=${outdir}/sickle_pe.${now}.stdout;
 outdir_2=${outdir}/sickle_pe.${now}
 mkdir ${outdir_2}
 
-for i in `ls ${dir}/*_1*fastq*`; do
+for i in `ls ${dir}/*_1*fastq.gz`; do
     echo ${i} >> ${errfile};
     echo ${i} >> ${outfile};
 
@@ -28,7 +28,7 @@ for i in `ls ${dir}/*_1*fastq*`; do
 -r $(echo ${i} | sed 's/_1/_2/g') \
 -t sanger \
 -g \
--o ${outdir_2}/$(basename ${i} | sed 's/.fastq.gz/.fastq.trimmed.gz/g') -p ${outdir_2}/$(basename ${i} | sed 's/_1/_2/g' | sed 's/.fastq.gz/.fastq.trimmed.gz/g') -s ${outdir_2}/$(basename ${i} | sed 's/_1/_singles/g' | sed 's/.fastq.gz/.fastq.trimmed.gz/g') \
+-o ${outdir_2}/$(basename ${i} | sed 's/.fastq.gz/.trimmed.fastq.gz/g') -p ${outdir_2}/$(basename ${i} | sed 's/_1/_2/g' | sed 's/.fastq.gz/.trimmed.fastq.gz/g') -s ${outdir_2}/$(basename ${i} | sed 's/_1/_singles/g' | sed 's/.fastq.gz/.trimmed.fastq.gz/g') \
 2>> ${errfile} >> ${outfile};
 
     echo "-------------" >> ${errfile};

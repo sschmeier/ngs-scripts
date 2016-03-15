@@ -20,7 +20,7 @@ for i in `ls ${dir}/*fastq*`; do
     #  -t, --qual-type,  = sanger
     #  -o, --output-file, Output trimmed fastq file (required)
     #  -g, --gzip-output, Output gzipped files.
-    sickle se -f ${i} -t sanger -g -o "${outdir2}/$(basename ${i} | sed 's/.fastq.gz/.fastq.trimmed.gz/g')" 2>> ${errfile} >> ${outfile};
+    sickle se -f ${i} -t sanger -g -o "${outdir2}/$(basename ${i} | sed 's/.fastq.gz/.trimmed.fastq.gz/g')" 2>> ${errfile} >> ${outfile};
     echo "-------------" >> ${errfile};
     echo "-------------" >> ${outfile};
 done;
