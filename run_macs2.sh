@@ -1,6 +1,9 @@
 #!/bin/bash
 # USAGE: script.sh in-dir out-dir genomesize
 # recommendations taken from: http://bib.oxfordjournals.org/content/early/2016/01/12/bib.bbv110.full
+#
+# This script is only working for ONE treatment file, without any control files.
+# Not suitable for many treatment files or control files.
 
 dir=$1;
 outdir=$2;
