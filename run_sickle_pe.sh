@@ -28,8 +28,7 @@ for i in `ls ${dir}/*_1*fastq.gz`; do
 -r $(echo ${i} | sed 's/_1/_2/g') \
 -t sanger \
 -g \
--o ${outdir_2}/$(basename ${i} | sed 's/.fastq.gz/.trimmed.fastq.gz/g') -p ${outdir_2}/$(basename ${i} | sed 's/_1/_2/g' | sed 's/.fastq.gz/.trimmed.fastq.gz/g') -s ${outdir_2}/$(basename ${i} | sed 's/_1/_singles/g' | sed 's/.fastq.gz/.trimmed.fastq.gz/g') \
-2>> ${errfile} >> ${outfile};
+-o ${outdir_2}/$(basename ${i} | sed 's/.fastq.gz/.trimmed.fastq.gz/g') -p ${outdir_2}/$(basename ${i} | sed 's/_1/_2/g' | sed 's/.fastq.gz/.trimmed.fastq.gz/g') -s ${outdir_2}/$(basename ${i} | sed 's/_1/_singles/g' | sed 's/.fastq.gz/.trimmed.fastq.gz/g') 2>> ${errfile} >> ${outfile};
 
     echo "-------------" >> ${errfile};
     echo "-------------" >> ${outfile};

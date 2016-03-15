@@ -34,8 +34,7 @@ for i in `ls ${dir}/*.fastq.gz*`; do
      --all \
      -x ${genomeindex} \
      -U ${i} \
-     -S ${resultfile} \
-     2>> ${errfile} >> ${outfile}; 
+     -S ${resultfile} 2>> ${errfile} >> ${outfile}; 
     
     #nice samtools view -bS ${resultfile} > ${resultfile}.bam
     #rm ${resultfile}

@@ -43,8 +43,7 @@ for i in `ls ${dir}/*.bam`; do
                    -f BAM \
                    -g ${genomesize} \
                    -q 0.1 \
-	           --call-summits \ 
-                   2>> ${errfile} >> ${outfile}; 
+	           --call-summits 2>> ${errfile} >> ${outfile};
 
     echo "----------" >> ${errfile};
     echo "----------" >> ${outfile};
