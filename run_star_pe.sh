@@ -4,6 +4,8 @@
 dir=$1;
 outdir=$2;
 genomeindex=$3;
+load=$4;
+remove=$5;
 
 now=$(date +"%Y-%m-%d_%H%M%S")
 
@@ -15,11 +17,12 @@ outdir_2=${outdir}/star_pe.${now};
 mkdir ${outdir_2};
 
 # load genome into mem
-STAR --outFileNamePrefix ${outdir_2} \
-     --runThreadN 2 \
-     --genomeLoad LoadAndExit \
-     --genomeDir ${genomeindex} \
-     2>> ${errfile} >> ${outfile};
+if [ "$load" = "yes" ]; then
+    STAR --outFileNamePrefix ${outdir_2} \
+         --runThreadN 2 \
+         --genomeLoad LoadAndExit \
+         --genomeDir ${genomeindex} 2>> ${errfile} >> ${outfile};
+fi
 
 for i in `ls ${dir}/*_1.fastq.gz`; do
     echo ${i} >> ${errfile};
@@ -45,10 +48,11 @@ for i in `ls ${dir}/*_1.fastq.gz`; do
     echo "----------" >> ${errfile};
     echo "----------" >> ${outfile};
 done;
- 
-STAR --outFileNamePrefix ${outdir_2} \
-     --runThreadN 2 \
-     --genomeLoad Remove \
-     --genomeDir ${genomeindex} \
-     2>> ${errfile} >> ${outfile};
+
+if [ "$remove" = "yes" ]; then 
+    STAR --outFileNamePrefix ${outdir_2} \
+         --runThreadN 2 \
+         --genomeLoad Remove \
+         --genomeDir ${genomeindex} 2>> ${errfile} >> ${outfile};
+fi
 

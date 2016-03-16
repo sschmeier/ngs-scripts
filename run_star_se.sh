@@ -4,6 +4,8 @@
 dir=$1;
 outdir=$2;
 genomeindex=$3;
+load=$4
+remove=$5
 
 now=$(date +"%Y-%m-%d_%H%M%S")
 
@@ -16,11 +18,12 @@ mkdir ${outdir_2};
 
 # load genome into mem
 # MAKES ONLY SENSE IF --limitBAMsortRAM IS SET IN SUBSEQUENT RUNS
-STAR --outFileNamePrefix ${outdir_2} \
-     --runThreadN 2 \
-     --genomeLoad LoadAndExit \
-     --genomeDir ${genomeindex} \
-     2>> ${errfile} >> ${outfile};
+if [ "$load" = "yes" ]; then
+    STAR --outFileNamePrefix ${outdir_2} \
+	 --runThreadN 2 \
+         --genomeLoad LoadAndExit \
+         --genomeDir ${genomeindex} 2>> ${errfile} >> ${outfile};
+fi
 
 for i in `ls ${dir}/*.fastq.gz*`; do
     echo ${i} >> ${errfile};
@@ -46,10 +49,12 @@ for i in `ls ${dir}/*.fastq.gz*`; do
     echo "----------" >> ${errfile};
     echo "----------" >> ${outfile};
 done;
- 
-STAR --outFileNamePrefix ${outdir_2} \
-     --runThreadN 2 \
-     --genomeLoad Remove \
-     --genomeDir ${genomeindex} \
-     2>> ${errfile} >> ${outfile};
+
+# attention, if you use multiple runs at the same time, you might remove it too early. 
+if [ "$remove" = "yes" ]; then
+    STAR --outFileNamePrefix ${outdir_2} \
+         --runThreadN 2 \
+         --genomeLoad Remove \
+         --genomeDir ${genomeindex} 2>> ${errfile} >> ${outfile};
+fi
 
