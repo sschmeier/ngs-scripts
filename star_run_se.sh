@@ -47,8 +47,7 @@ for i in `ls ${dir}/*.fastq.gz*`; do
          --alignEndsType EndToEnd \
          --genomeDir ${genomeindex} \
          --readFilesCommand zcat \
-         --readFilesIn ${i} \
-         2>> ${errfile} >> ${outfile}; 
+         --readFilesIn ${i} 2>> ${errfile} >> ${outfile}; 
 
     echo "----------" >> ${errfile};
     echo "----------" >> ${outfile};
