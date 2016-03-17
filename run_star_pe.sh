@@ -25,14 +25,15 @@ if [ "$load" = "yes" ]; then
 fi
 
 for i in `ls ${dir}/*_1.fastq.gz`; do
-    echo ${i} >> ${errfile};
-    echo ${i} >> ${outfile};
+    i2=$(echo ${i} | sed 's/_1/_2/g');
+    echo ${i},${i2} >> ${errfile};
+    echo ${i},${i2} >> ${outfile};
     
     # --limitBAMsortRAM NEEDS TO BE SET IF SHARED GENOME SHOULD BE USED
     # --outFilterMultimapNmax 1 = filter out multimappers
     # --alignIntronMax 1 = dont split up reads
     # --alignEndsType EndToEnd = dont split up reads
-    nice STAR --readFilesIn ${i} $(echo ${i} | sed 's/_1/_2/g') \
+    nice STAR --readFilesIn ${i} ${i2} \
          --outFileNamePrefix ${outdir_2}/$(basename ${i} | sed 's/_1.fastq.gz/_/g') \
          --limitBAMsortRAM 20000000000 \
          --genomeLoad LoadAndKeep \
