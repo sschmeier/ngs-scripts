@@ -1,5 +1,5 @@
 #!/bin/bash
-# USAGE: script.sh in-dir out-dir genomeindex-dir yes/no yes/no
+# USAGE: script.sh in-dir out-dir genomeindex-dir yes/no
 #
 # Using STAR for mapping NGS short-read data to genomes, in a splice UNAWARE manner, similar to bwa, bowtie2, etc.
 # Drop-in replacement for bwa, bowtie
@@ -8,8 +8,7 @@
 dir=$1;
 outdir=$2;
 genomeindex=$3;
-load=$4
-remove=$5
+remove=$4
 
 now=$(date +"%Y-%m-%d_%H%M%S")
 
@@ -20,15 +19,6 @@ outfile=${outdir}/star_se.${now}.stdout
 outdir_2=${outdir}/star_se.${now};
 mkdir ${outdir_2};
 
-# load genome into mem
-# MAKES ONLY SENSE IF --limitBAMsortRAM IS SET IN SUBSEQUENT RUNS
-if [ "$load" = "yes" ]; then
-    STAR --outFileNamePrefix ${outdir_2} \
-	 --runThreadN 2 \
-         --genomeLoad LoadAndExit \
-         --genomeDir ${genomeindex} 2>> ${errfile} >> ${outfile};
-fi
-
 for i in `ls ${dir}/*.fastq.gz*`; do
     echo ${i} >> ${errfile};
     echo ${i} >> ${outfile};
@@ -37,6 +27,7 @@ for i in `ls ${dir}/*.fastq.gz*`; do
     # --outFilterMultimapNmax 1 = filter out multimappers
     # --alignIntronMax 1 = dont split up reads
     # --alignEndsType EndToEnd = dont split up reads
+    # --genomeLoad LoadAndKeep = will load the genomindex specified if not already loaded and will keep it in MEM for subsequent runs
     nice STAR --outFileNamePrefix ${outdir_2}/$(basename ${i} | sed 's/.fastq.gz/_/g') \
          --limitBAMsortRAM 20000000000 \
          --genomeLoad LoadAndKeep \
