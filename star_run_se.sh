@@ -1,5 +1,5 @@
 #!/bin/bash
-# USAGE: script.sh in-dir out-dir genomeindex-dir
+# USAGE: script.sh in-dir out-dir genomeindex-dir yes/no yes/no
 #
 # Using STAR for mapping NGS short-read data to genomes, in a splice UNAWARE manner, similar to bwa, bowtie2, etc.
 # Drop-in replacement for bwa, bowtie

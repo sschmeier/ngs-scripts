@@ -1,5 +1,5 @@
 #!/bin/bash
-# USAGE: script.sh in-dir out-dir genomeindex-dir
+# USAGE: script.sh in-dir out-dir genomeindex-dir yes/no yes/no
 # expecys files of the form: *_1.fastq.gz, *_2.fastq.gz
 #
 # Using STAR for mapping NGS short-read data to genomes, in a splice UNAWARE manner, similar to bwa, bowtie2, etc.
