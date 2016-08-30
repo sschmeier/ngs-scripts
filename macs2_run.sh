@@ -42,7 +42,7 @@ for i in `ls ${dir}/*.bam`; do
                    -t ${i} \
                    -f BAM \
                    -g ${genomesize} \
-                   -q 0.1 \
+                   -q 0.05 \
 	           --call-summits 2>> ${errfile} >> ${outfile};
 
     echo "----------" >> ${errfile};
