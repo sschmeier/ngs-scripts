@@ -6,7 +6,7 @@
 # Drop-in replacement for bwa, bowtie.
 # ATTENTION: For RNAseq type of splice-aware mapping use differnt script.
 #
-# in-dir:          path to directory with fastq files to map
+# in-dir:          path to directory with fastq.gz files to map
 #                  expects files of the form: *_1.fastq.gz, *_2.fastq.gz
 # out-dir:         path to directory for results 
 # genomeindex-dir: path to directory with genomeindex
