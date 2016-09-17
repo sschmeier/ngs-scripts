@@ -1,6 +1,6 @@
 #!/usr/bin/Rscript
 #
-# Transform salmon produced transcript counts into TMM-T/CPMs for genes.
+# Transform salmon produced transcript counts into TMM-normalised CPMs (counts per million) for genes.
 #
 # WRITES TO STDOUT.
 # 
@@ -47,9 +47,9 @@ counts <- round(txi$counts) # round to integers
 d <- DGEList(counts=counts)
 d <- calcNormFactors(d, method="TMM")
 
-# get table with TMM normalised TPM for all genes
+# get table with TMM normalised CPM for all genes
 cpms <- cpm(d)
-colnames(cpms) <- paste(colnames(cpms),'TMMTPM',sep='_')
+colnames(cpms) <- paste(colnames(cpms),'TMMCPM',sep='_')
 ccpms <- cbind(d$counts, cpms)
 #results <- data.frame("Genes"=rownames(ccpms), ccpms)
 #print(results) # to stdout

@@ -44,12 +44,12 @@ d <- DGEList(counts=counts,group=group)
 d <- calcNormFactors(d, method="TMM")
 d
 
-# get table with TMM normalised TPM for all genes
+# get table with TMM normalised CPM for all genes
 cpms <- cpm(d)
-colnames(cpms) <- paste(colnames(cpms),'TMMTPM',sep='_')
+colnames(cpms) <- paste(colnames(cpms),'TMMCPM',sep='_')
 ccpms <- cbind(d$counts, cpms)
 write.table(data.frame("Genes"=rownames(ccpms), ccpms),
-            file="edgeR_COUNTS_TMM-TPM_samples.txt",
+            file="edgeR_COUNTS_TMM-CPM_samples.txt",
             append=FALSE,
             quote=FALSE,
             sep="\t",
@@ -98,7 +98,7 @@ d1 <- d[use,]
 
 # reset libsizes
 # this will change the TMM values for the genes as oposed to the original complete set.
-# Use original TPM (from d) for non-DE related tasks.
+# Use original CPM (from d) for non-DE related tasks.
 d1$samples$lib.size <- colSums(d1$counts)
 
 cat("\nAFTER filtering stats:\n")

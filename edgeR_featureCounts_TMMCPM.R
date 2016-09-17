@@ -1,6 +1,6 @@
 #!/usr/bin/Rscript
 #
-# Producing TMM-TPM normlised counts for featureCounts result table.
+# Producing TMM-CPM (counts per million) normlised counts for featureCounts result table.
 #
 # WRITES TO STDOUT.
 #
