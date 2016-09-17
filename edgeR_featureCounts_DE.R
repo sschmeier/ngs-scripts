@@ -1,49 +1,40 @@
 #!/usr/bin/Rscript
 #
-# Analysing salmon produced transcript counts for DE genes.
-# 
-# Expects two files: 
+# Analysing featurecounts produced transcript counts for DE genes.
 #
-#  tx_gene_map.txt, transcript to gene mapping e.g.
-#    ENSMUST00000205326.1    ENSMUSG00000108652
-#    ENSMUST00000206672.1    ENSMUSG00000108652
-#    ENSMUST00000021676.11   ENSMUSG00000021252
-#    ENSMUST00000124311.1    ENSMUSG00000021252
-#    ...
+# Expects two files:
 #
 #  samples.txt, sample information,
-#               col1 which is used to estbalish groups 
+#               col1 which is used to estbalish groups
 #               col3 will be used as colnames
-#               col4 which is use to load the salmon files
 #  e.g.
-#  
-#    control rep1    SRR4048970      ./quants/SRR4048970/quant.sf
-#    control rep2    SRR4048971      ./quants/SRR4048971/quant.sf
-#    control rep3    SRR4048972      ./quants/SRR4048972/quant.sf
-#    15d-PGJ2        rep1    SRR4048973      ./quants/SRR4048973/quant.sf
-#    15d-PGJ2        rep2    SRR4048974      ./quants/SRR4048974/quant.sf
-#    15d-PGJ2        rep3    SRR4048975      ./quants/SRR4048975/quant.sf
 #
+#    control rep1    SRR4048970
+#    control rep2    SRR4048971
+#    control rep3    SRR4048972
+#    15d-PGJ2        rep1    SRR4048973
+#    15d-PGJ2        rep2    SRR4048974
+#    15d-PGJ2        rep3    SRR4048975
+#
+#  featurecounts produced count file -> here expects name featurecounts.genes.counts.gz
+# 
 
-library(tximport)
 library(edgeR)
 library(methods)
 
-# tx_gene_map.txt e.g.
-t2g <- read.table(file.path('.', "tx_gene_map.txt"), header = FALSE)
-
-# samples.txt, e.g.
+# samples.txt
 samples <- read.table(file.path('.', "samples.txt"), header = FALSE)
 
-# load salmon files specified in samples.txt col4
-files <- file.path(samples[,4])
-txi <- tximport(files = files, type="salmon", tx2gene = t2g )
-# set colnames from samples.txt col3
-colnames(txi$counts) <- samples[,3]
-counts <- round(txi$counts) # round to integers
+fc <-  read.table(file.path('.', "featurecounts.genes.counts.gz"), header = TRUE, skip=1)
 
-# some information about the groupings of samples from samples.txt col1
+counts <- fc[,-(2:6)]
+rownames(counts) <- counts[,1]
+counts[,1] <- NULL
+
+# some information about the groupings of samples
 group <- samples[,1]
+colnames(counts)
+group
 
 # create desgin matrix
 #design <- model.matrix(~group)
@@ -64,14 +55,12 @@ write.table(data.frame("Genes"=rownames(ccpms), ccpms),
             sep="\t",
             row.names=FALSE)
 
-#--- DE ANALYSIS ---------
-
 cat("\nBEFORE filtering stats:\n")
 cat("colsums:\n")
-colSums(d$counts)
-summary(colSums(d$counts))
+colSums(counts)
+summary(colSums(counts))
 cat("\nrowsums:\n")
-summary(rowSums(d$counts))
+summary(rowSums(counts))
 
 #--------------------------------------------------------------------
 # INDEPENDENT FILTERING
@@ -82,8 +71,8 @@ summary(rowSums(d$counts))
 
 # Based on Nature Protocol: http://www.nature.com/nprot/journal/v8/n9/full/nprot.2013.099.html
 # based on CPM values and replicate numbers
-# CRITICAL STEP In edgeR, it is recommended to remove features without 
-# at least 1 read per million in n of the samples, where n is the size of the smallest group of replicates 
+# CRITICAL STEP In edgeR, it is recommended to remove features without
+# at least 1 read per million in n of the samples, where n is the size of the smallest group of replicates
 use = rowSums(cpms >1) >= min(table(d$samples$group))  # num smallest group size reps at least > 1 cpm
 
 # ALTERNATIVE FILTERING METHODS --------
@@ -152,3 +141,4 @@ write.table(data.frame("Genes"=rownames(datasub), datasub),
             quote=FALSE,
             sep="\t",
             row.names=FALSE)
+
