@@ -18,7 +18,7 @@
 #
 #  featurecounts produced count file -> here expects name featurecounts.genes.counts.gz
 # 
-
+time <- format(Sys.time(), "%Y%m%d-%H%M%S")
 library(edgeR)
 library(methods)
 
@@ -49,7 +49,7 @@ cpms <- cpm(d)
 colnames(cpms) <- paste(colnames(cpms),'TMMCPM',sep='_')
 ccpms <- cbind(d$counts, cpms)
 write.table(data.frame("Genes"=rownames(ccpms), ccpms),
-            file="edgeR_COUNTS_TMM-CPM_samples.txt",
+            file=paste(time, "edgeR_COUNTS_TMMCPM.txt", sep="_"),
             append=FALSE,
             quote=FALSE,
             sep="\t",
@@ -136,7 +136,7 @@ datasub$FDR <- p.adjust(method="fdr",p=datasub$PValue)
 # problem always rownames column gets no header string
 # we fix it with this workaround over a data.frame
 write.table(data.frame("Genes"=rownames(datasub), datasub),
-            file="edgeR_DE_control-vs-treat.txt",
+            file=paste(time, "edgeR_DE-CONTROL-VS-TREAT.txt", sep="_"),
             append=FALSE,
             quote=FALSE,
             sep="\t",
