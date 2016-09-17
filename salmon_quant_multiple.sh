@@ -1,10 +1,18 @@
 #!/bin/bash
 # USAGE: script.sh INDEX DIR-WITH-FASTQ SE/PE
-# INDEX: SALMON-INDEX directory
-# DIR-WITH-FASTQ: Will find all fastq in DIR-WITH-FASTQ including sub-directories
-# SE/PE:  Either SE for single end or PE for paired-end.
+#
+# INDEX: 
+#   SALMON-INDEX directory
+#   Create index withm e.g.
+#   salmon index -t ../../TX/Mus_musculus-release-85/cdna.ncrna/Mus_musculus.GRCm38.cdna.ncrna.fa -i Mus_musculus.GRCm38.cdna.ncrna.idx -p 4
+#
+# DIR-WITH-FASTQ: Will find all fastq-files in DIR-WITH-FASTQ including sub-directories
+#
+# SE/PE: Either SE for single-end/unpaired or PE for paired-end reads (expects _1.fastq.gz and _2.fastq.gz files) .
+#
 # Looks for *.fastq.gz
-# Will out put to directory ./quants
+# Will write output to directory ./quants
+#
 
 INDEX=$1
 DIR=$2
