@@ -29,6 +29,15 @@ library(edgeR)
 library(methods)
 library(readr)
 
+# length in bases
+counts2tpm <- function(counts, length)
+    {
+        c.rpk <- (counts/(length/1000)) # reads per kilobase
+        c.rpksums <- colSums(c.rpk)/1e6 # scaling factors
+        t(t(c.rpk)/c.rpksums) # scale rpks
+    }
+
+## START
 # tx_gene_map.txt e.g.
 t2g <- read.table(file.path('.', "tx_gene_map.txt"), header = FALSE)
 

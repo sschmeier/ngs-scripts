@@ -1,6 +1,7 @@
 #!/usr/bin/Rscript
 #
-# Analysing featurecounts produced transcript counts for DE genes.
+# Analysing featurecounts produced transcript counts for DGE.
+#
 #
 # Expects two files:
 #
@@ -16,44 +17,61 @@
 #    15d-PGJ2        rep2    SRR4048974
 #    15d-PGJ2        rep3    SRR4048975
 #
-#  featurecounts produced count file -> here expects name featurecounts.genes.counts.gz
-# 
+#  featurecounts produced count file as command line argument 1
+#
+# featureCounts can be used like this:
+# e.g.
+# featureCounts -a Mus_musculus.GRCm38.85.gtf -o featurecounts.genes.counts star/*.bam
+# featureCounts -a Mus_musculus.GRCm38.85.gtf -o featurecounts.tx.counts -g transcript_id star/*.bam
+#
+
+# length in bases
+counts2tpm <- function(counts, length)
+    {
+        c.rpk <- (counts/(length/1000)) # reads per kilobase
+        c.rpksums <- colSums(c.rpk)/1e6 # scaling factors
+        t(t(c.rpk)/c.rpksums) # scale rpks
+    }
+
 time <- format(Sys.time(), "%Y%m%d-%H%M%S")
-library(edgeR)
-library(methods)
+args <- commandArgs(trailingOnly = TRUE)
+if ( length(args)<1 ) {
+   stop("USAGE: featureCounts_edgeR_DGE.R featurecount-file")
+}
+
+file=args[1]
+
+fc <-  read.table(file.path('.', file), header = TRUE, skip=1)
 
 # samples.txt
 samples <- read.table(file.path('.', "samples.txt"), header = FALSE)
-
-fc <-  read.table(file.path('.', "featurecounts.genes.counts.gz"), header = TRUE, skip=1)
-
-counts <- fc[,-(2:6)]
-rownames(counts) <- counts[,1]
-counts[,1] <- NULL
-
 # some information about the groupings of samples
 group <- samples[,1]
-colnames(counts)
 group
+
+counts <- fc[,-(1:6)]
+rownames(counts) <- fc$Geneid
+colnames(counts)
+tpm <- counts2tpm(counts, fc$Length)
+colnames(tpm) <- paste(colnames(tpm),'TPM',sep='_')
+
+library(edgeR)
+library(methods)
+
+# tximport type of normalising with length
+# # https://bioconductor.org/packages/release/bioc/vignettes/tximport/inst/doc/tximport.html
+# get matrix of lengths
+normMat = replicate(6, fc$Length)
+normMat <- normMat/exp(rowMeans(log(normMat)))
+o <- log(calcNormFactors(counts/normMat)) + log(colSums(counts/normMat))
+d <- DGEList(counts, group=group)
+d$offset <- t(t(log(normMat)) + o)
+# d is now ready for estimate dispersion functions see edgeR User's Guide
+
+d$tpm <- tpm
 
 # create desgin matrix
 #design <- model.matrix(~group)
-
-# edgeR
-d <- DGEList(counts=counts,group=group)
-d <- calcNormFactors(d, method="TMM")
-d
-
-# get table with TMM normalised CPM for all genes
-cpms <- cpm(d)
-colnames(cpms) <- paste(colnames(cpms),'TMMCPM',sep='_')
-ccpms <- cbind(d$counts, cpms)
-write.table(data.frame("Genes"=rownames(ccpms), ccpms),
-            file=paste(time, "edgeR_COUNTS_TMMCPM.txt", sep="_"),
-            append=FALSE,
-            quote=FALSE,
-            sep="\t",
-            row.names=FALSE)
 
 cat("\nBEFORE filtering stats:\n")
 cat("colsums:\n")
@@ -73,49 +91,35 @@ summary(rowSums(counts))
 # based on CPM values and replicate numbers
 # CRITICAL STEP In edgeR, it is recommended to remove features without
 # at least 1 read per million in n of the samples, where n is the size of the smallest group of replicates
-use = rowSums(cpms >1) >= min(table(d$samples$group))  # num smallest group size reps at least > 1 cpm
-
-# ALTERNATIVE FILTERING METHODS --------
-# Based on rowsums alone
-#use = (rowSums(d$counts)>10)
-
-# Based on method in the DESeq viginette
-# Here, we consider as a filter criterion rowsum rs, the overall
-# sum of counts (irrespective of biological condition),
-# and remove the genes in the lowest 40% quantile
-#rs = rowSums(d$counts)
-#q = quantile(rs, probs=0.4)
-# if too many lowly expressed transcripts we can be more strict and
-# filter on a higer tag count rowsum as these will also not be DE
-#if (q<10) {
-#    q=10
-#}
-#use = (rs > q)
-#--------------------------------------
+# WE ARE USING TPM
+use = rowSums(tpm >1) >= min(table(d$samples$group))  # num smallest group size reps at least > 1 tpm
 
 # apply filter
-d1 <- d[use,]
+d <- d[use,]
+# also to tpm table
+d$tpm <- d$tpm[use,]
 
 # reset libsizes
 # this will change the TMM values for the genes as oposed to the original complete set.
 # Use original CPM (from d) for non-DE related tasks.
-d1$samples$lib.size <- colSums(d1$counts)
+d$samples$lib.size <- colSums(d$counts)
 
 cat("\nAFTER filtering stats:\n")
 cat("colsums::\n")
-colSums(d1$counts)
-summary(colSums(d1$counts))
+colSums(d$counts)
+summary(colSums(d$counts))
 cat("\nrowsums:\n")
-summary(rowSums(d1$counts))
+summary(rowSums(d$counts))
 #--------------------------------------------------------------------
 
 # edgeR DE
-# we normalise again with reduced table.
-d1 <- calcNormFactors(d1, method="TMM")
-d1 = estimateCommonDisp(d1)
-d1 = estimateTagwiseDisp(d1)
+# we DO not normalise again with reduced table.
+# we use offsets calcualted above
+#d <- calcNormFactors(d, method="TMM")
+d = estimateCommonDisp(d)
+d = estimateTagwiseDisp(d)
 
-de.com = exactTest(d1)
+de.com = exactTest(d)
 
 # print some stats
 cat("\np.value<0.05:\n")
@@ -127,10 +131,11 @@ topTags(de.com)
 #some plotting
 #x = sum(p.adjust(de.com$table$PValue,method="BH") < 0.05)
 #de.tags <- rownames(topTags(de.com, n=x)$table)
-#plotSmear(d1, de.tags=de.tags)
+#plotSmear(d, de.tags=de.tags)
 
-datasub <- cbind(d1$counts, de.com$table)
-datasub$FDR <- p.adjust(method="fdr",p=datasub$PValue)
+dge <- de.com$table
+dge$FDR <- p.adjust(method="fdr",p=dge$PValue)
+datasub <- cbind(dge, d$counts, d$tpm)
 
 # print table
 # problem always rownames column gets no header string
