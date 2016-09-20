@@ -1,22 +1,33 @@
 #!/bin/bash
-# USAGE: script.sh INDEX DIR-WITH-FASTQ SE/PE
+# USAGE: script.sh TXINDEX DIR-WITH-FASTQ SE/PE GFF-FILE/NO
 #
-# INDEX: 
+# TXINDEX: 
 #   SALMON-INDEX directory
 #   Create index withm e.g.
-#   salmon index -t ../../TX/Mus_musculus-release-85/cdna.ncrna/Mus_musculus.GRCm38.cdna.ncrna.fa -i Mus_musculus.GRCm38.cdna.ncrna.idx -p 4
+#   salmon index -t ../../TX/Mus_musculus-release-85/cdna.ncrna/Mus_musculus.GRCm38.cdna.fa -i Mus_musculus.GRCm38.cdna.idx -p 4
 #
 # DIR-WITH-FASTQ: Will find all fastq-files in DIR-WITH-FASTQ including sub-directories
 #
 # SE/PE: Either SE for single-end/unpaired or PE for paired-end reads (expects _1.fastq.gz and _2.fastq.gz files) .
 #
+# GFF-FILE/NO: Mapping between transcripts and genes, can be GFF/GTF file or tab-seperated file:
+#  tx1\tgene
+#  tx2\tgene
+#  ...
+#
 # Looks for *.fastq.gz
 # Will write output to directory ./quants
 #
 
+if [[ $# -eq 0 ]] ; then
+    echo 'USAGE: salmon_quant_multiple.sh TXINDEX DIR-WITH-FASTQ SE/PE GFF-FILE/NO'
+    exit 0
+fi
+
 INDEX=$1
 DIR=$2
 TYPE=$3
+GFF=$4
 # create base out dir
 mkdir -p ./quants
 
@@ -26,6 +37,12 @@ for FQ in $(find $DIR -name '*.fastq.gz'); do
         if [[ $FQ == *"_2.fastq"* ]]; then
 	    echo "Skipping as processed with read 1:" `basename $FQ`;
 	    continue
+        fi
+	
+	if [[ $GFF != "NO" ]]; then
+            GFFSTR="-g ${GFF}";
+        else
+            GFFSTR="";
         fi
 
         FQ1=${FQ}
@@ -41,15 +58,23 @@ for FQ in $(find $DIR -name '*.fastq.gz'); do
 	# --useVBOpt: VB optimizer rather than the standard EM optimizer. 
         # tends to give more accurate results than the standard EM algorithm.
 	salmon quant -l A \
+	             ${GFFSTR} \
 	             -i ${INDEX} \
                      -1 <(gunzip -c ${FQ1}) \
                      -2 <(gunzip -c ${FQ2}) \
                      -o ${DIR} \
                      -p 4 \
 	             --useVBOpt \
+	             --auxDir aux \  # important if sleuth will be used later
                      --numBootstraps 30 > ${DIR}/salmon.stdout 2> ${DIR}/salmon.stderr        
     
     else # SE
+	if [[ $GFF != "NO" ]]; then
+	    GFFSTR="-g ${GFF}";
+	else
+	    GFFSTR="";
+	fi
+	
 	TEMP1=$(basename ${FQ}) 
 	TEMP=${TEMP1%%.*} # remove all after . 
 	DIR=./quants/${TEMP/_1/}	
@@ -60,11 +85,13 @@ for FQ in $(find $DIR -name '*.fastq.gz'); do
 	# --useVBOpt: VB optimizer rather than the standard EM optimizer. 
         # tends to give more accurate results than the standard EM algorithm.
 	salmon quant -l A \
-	             -i ${INDEX} \
+                     ${GFFSTR} \
+                     -i ${INDEX} \
                      -r <(gunzip -c ${FQ}) \
                      -o ${DIR} \
                      -p 4 \
                      --useVBOpt \
-                     --numBootstraps 30 > ${DIR}/salmon.stdout 2> ${DIR}/salmon.stderr        
+                     --auxDir aux \
+                     --numBootstraps 30 > ${DIR}/salmon.stdout 2> ${DIR}/salmon.stderr
     fi
 done

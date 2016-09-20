@@ -1,6 +1,7 @@
 #!/usr/bin/Rscript
 #
-# Transform salmon produced transcript counts into TMM-normalised CPMs (counts per million) for genes.
+# Summarizes salmon produced transcript counts into table of counts and TPM for transcripts.
+# Will output tximport transformed/normalised counts.
 #
 # WRITES TO STDOUT.
 # 
@@ -29,6 +30,7 @@
 library(tximport)
 library(edgeR)
 library(methods)
+library(readr)
 
 # tx_gene_map.txt e.g.
 t2g <- read.table(file.path('.', "tx_gene_map.txt"), header = FALSE)
@@ -38,23 +40,23 @@ samples <- read.table(file.path('.', "samples.txt"), header = FALSE)
 
 # load salmon files specified in samples.txt col4
 files <- file.path(samples[,4])
-txi <- tximport(files = files, type="salmon", tx2gene = t2g )
+# estimate adjusted counts from TPMs
+# Based on tximport:
+# https://bioconductor.org/packages/release/bioc/vignettes/tximport/inst/doc/tximport.html
+txi <- tximport(files = files,
+                type="salmon",
+                tx2gene = t2g,
+                reader=read_tsv,
+                countsFromAbundance="lengthScaledTPM",
+                txOut=TRUE)
+
 # set colnames from samples.txt col3
 colnames(txi$counts) <- samples[,3]
-counts <- round(txi$counts) # round to integers
+colnames(txi$abundance) <- paste(samples[,3],'TPM',sep='_')
 
-# edgeR
-d <- DGEList(counts=counts)
-d <- calcNormFactors(d, method="TMM")
-
-# get table with TMM normalised CPM for all genes
-cpms <- cpm(d)
-colnames(cpms) <- paste(colnames(cpms),'TMMCPM',sep='_')
-ccpms <- cbind(d$counts, cpms)
-#results <- data.frame("Genes"=rownames(ccpms), ccpms)
-#print(results) # to stdout
-
-write.table(data.frame("Genes"=rownames(ccpms), ccpms),
+# get table with tximport gene-summed TPM and estimated counts 
+ctpm <- cbind(txi$counts, txi$abundance)
+write.table(data.frame("Tx"=rownames(ctpm), ctpm),
             file="",
             append=FALSE,
             quote=FALSE,
