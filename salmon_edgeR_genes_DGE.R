@@ -79,14 +79,16 @@ write.table(data.frame("Genes"=rownames(ctpm), ctpm),
             row.names=FALSE)
 
 
+d = DGEList(counts=txi$counts, group=group)
+d$tpm = txi$abundance
 
 #--- DE ANALYSIS ---------
 cat("\nBEFORE filtering stats:\n")
 cat("colsums:\n")
-colSums(txi$counts)
-summary(colSums(txi$counts))
+colSums(d$counts)
+summary(colSums(d$counts))
 cat("\nrowsums:\n")
-summary(rowSums(txi$counts))
+summary(rowSums(d$counts))
 
 #--------------------------------------------------------------------
 # INDEPENDENT FILTERING
@@ -102,30 +104,33 @@ summary(rowSums(txi$counts))
 # However, we use TPM for filtering
 
 # could use abundance/TPM as a countoff here.
-use = rowSums(txi$abundance >1) >= min(table(group))  # num smallest group size reps at least > 1 tpm
+use = rowSums(d$tpm >1) >= min(table(group))  # num smallest group size reps at least > 1 tpm
 #use = rowSums(cpm(d$counts) >1) >= min(table(d$samples$group))  # num smallest group size reps at least > 1 cpm
 
 # apply filter
-use.counts <- txi$counts[use,]
-use.tpm <- txi$abundance[use,]
+d <- d[use,]
+d$tpm <- d$tpm[use,]
 
 cat("\nAFTER filtering stats:\n")
 cat("colsums::\n")
-colSums(use.counts)
-summary(colSums(use.counts))
+colSums(d$counts)
+summary(colSums(d$counts))
 cat("\nrowsums:\n")
-summary(rowSums(use.counts))
+summary(rowSums(d$counts))
 #--------------------------------------------------------------------
 
 # edgeR DE
-d = DGEList(counts=use.counts, group=group)
-d$tpm <- use.tpm
+# We could adjsut lib-sizes as oposed to original count table, problem?
+# d$samples$lib.size = colSums(d$counts)
 
 # we are NOT normalising with edgeR.
 # we use already adjusted counts from tximport
+# also not clear if we need to do TMM between-sample normalisation or if this is done already through tximport
+# supposedly we don't normalise again.
 # d <- calcNormFactors(d, method="TMM") 
-d = estimateCommonDisp(d)
-d = estimateTagwiseDisp(d)
+#d = estimateCommonDisp(d)
+#d = estimateTagwiseDisp(d)
+d = estimateDisp(d)
 
 de.com = exactTest(d)
 

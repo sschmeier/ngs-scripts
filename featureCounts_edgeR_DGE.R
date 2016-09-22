@@ -102,7 +102,8 @@ d$tpm <- d$tpm[use,]
 # reset libsizes
 # this will change the TMM values for the genes as oposed to the original complete set.
 # Use original CPM (from d) for non-DE related tasks.
-d$samples$lib.size <- colSums(d$counts)
+# Not sure if strictkly speaking neceassry to adjust lib-sizes.
+#d$samples$lib.size <- colSums(d$counts)
 
 cat("\nAFTER filtering stats:\n")
 cat("colsums::\n")
@@ -116,8 +117,9 @@ summary(rowSums(d$counts))
 # we DO not normalise again with reduced table.
 # we use offsets calcualted above
 #d <- calcNormFactors(d, method="TMM")
-d = estimateCommonDisp(d)
-d = estimateTagwiseDisp(d)
+#d = estimateCommonDisp(d)
+#d = estimateTagwiseDisp(d)
+d = estimateDisp(d)
 
 de.com = exactTest(d)
 
