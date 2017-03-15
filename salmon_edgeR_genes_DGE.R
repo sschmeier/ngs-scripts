@@ -29,14 +29,6 @@ library(edgeR)
 library(methods)
 library(readr)
 
-# length in bases
-counts2tpm <- function(counts, length)
-    {
-        c.rpk <- (counts/(length/1000)) # reads per kilobase
-        c.rpksums <- colSums(c.rpk)/1e6 # scaling factors
-        t(t(c.rpk)/c.rpksums) # scale rpks
-    }
-
 ## START
 # tx_gene_map.txt e.g.
 t2g <- read.table(file.path('.', "tx_gene_map.txt"), header = FALSE)
@@ -90,38 +82,40 @@ summary(colSums(d$counts))
 cat("\nrowsums:\n")
 summary(rowSums(d$counts))
 
+FILTER=1
+if ( FILTER==1 ) {
+ #--------------------------------------------------------------------
+ # INDEPENDENT FILTERING
+ #--------------------------------------------------------------------
+ # Independent filtering to get rid of lowly expressed transcripts
+ # that have no chance of being DE in a stat test in the first place.
+ # Thus, the chance for the remainder is higher to be called DE
+
+ # Based on Nature Protocol: http://www.nature.com/nprot/journal/v8/n9/full/nprot.2013.099.html
+ # based on CPM values and replicate numbers
+ # CRITICAL STEP In edgeR, it is recommended to remove features without 
+ # at least 1 read per million in n of the samples, where n is the size of the smallest group of replicates 
+ # However, we use TPM for filtering
+ # could use abundance/TPM as a countoff here.
+ use = rowSums(d$tpm >1) >= min(table(group))  # num smallest group size reps at least > 1 tpm
+ #use = rowSums(cpm(d$counts) >1) >= min(table(d$samples$group))  # num smallest group size reps at least > 1 cpm
+
+ # apply filter
+ d <- d[use,]
+ d$tpm <- d$tpm[use,]
+
+ cat("\nAFTER filtering stats:\n")
+ cat("colsums::\n")
+ colSums(d$counts)
+ summary(colSums(d$counts))
+ cat("\nrowsums:\n")
+ summary(rowSums(d$counts))
+
+ # edgeR DE	
+ # We could adjsut lib-sizes as oposed to original count table, problem?
+ # d$samples$lib.size = colSums(d$counts)
+}
 #--------------------------------------------------------------------
-# INDEPENDENT FILTERING
-#--------------------------------------------------------------------
-# Independent filtering to get rid of lowly expressed transcripts
-# that have no chance of being DE in a stat test in the first place.
-# Thus, the chance for the remainder is higher to be called DE
-
-# Based on Nature Protocol: http://www.nature.com/nprot/journal/v8/n9/full/nprot.2013.099.html
-# based on CPM values and replicate numbers
-# CRITICAL STEP In edgeR, it is recommended to remove features without 
-# at least 1 read per million in n of the samples, where n is the size of the smallest group of replicates 
-# However, we use TPM for filtering
-
-# could use abundance/TPM as a countoff here.
-use = rowSums(d$tpm >1) >= min(table(group))  # num smallest group size reps at least > 1 tpm
-#use = rowSums(cpm(d$counts) >1) >= min(table(d$samples$group))  # num smallest group size reps at least > 1 cpm
-
-# apply filter
-d <- d[use,]
-d$tpm <- d$tpm[use,]
-
-cat("\nAFTER filtering stats:\n")
-cat("colsums::\n")
-colSums(d$counts)
-summary(colSums(d$counts))
-cat("\nrowsums:\n")
-summary(rowSums(d$counts))
-#--------------------------------------------------------------------
-
-# edgeR DE
-# We could adjsut lib-sizes as oposed to original count table, problem?
-# d$samples$lib.size = colSums(d$counts)
 
 # we are NOT normalising with edgeR.
 # we use already adjusted counts from tximport
