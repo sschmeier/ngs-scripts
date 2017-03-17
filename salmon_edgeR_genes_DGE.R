@@ -50,29 +50,23 @@ files <- file.path(samples[,4])
 txi <- tximport(files = files,
                 type="salmon",
                 tx2gene = t2g,
-                reader=read_tsv,
-                countsFromAbundance="lengthScaledTPM")
-
-# The txi$abundance colSums might not sum up to 1e6 (as TPMs should),
-# as some transcripts might be not asinged to genes 
-# and are missing from the txi$abundance union values
-
+                reader=read_tsv)
+                
 # set colnames from samples.txt col3
 colnames(txi$counts) <- samples[,3]
-colnames(txi$abundance) <- paste(samples[,3],'TPM',sep='_')
 
-# get table with tximport gene-summed TPM and estimated counts 
-ctpm <- cbind(txi$counts, txi$abundance)
-write.table(data.frame("Genes"=rownames(ctpm), ctpm),
-            file=paste(time, "edgeR_ALLGENES-COUNTS-TPM.txt", sep="_"),
-            append=FALSE,
-            quote=FALSE,
-            sep="\t",
-            row.names=FALSE)
+# https://bioconductor.org/packages/devel/bioc/vignettes/tximport/inst/doc/tximport.html#edger
+cts <- txi$counts
+normMat <- txi$length
+normMat <- normMat/exp(rowMeans(log(normMat)))
+o <- log(calcNormFactors(cts/normMat)) + log(colSums(cts/normMat))
+d <- DGEList(cts, group=group)
+d$offset <- t(t(log(normMat)) + o)
+# d is now ready for estimate dispersion functions see edgeR User's Guide
+d = estimateCommonDisp(d)
+d = estimateTagwiseDisp(d)
 
-
-d = DGEList(counts=txi$counts, group=group)
-d$tpm = txi$abundance
+d$tpm = cpm(d, log=TRUE)
 
 #--- DE ANALYSIS ---------
 cat("\nBEFORE filtering stats:\n")
@@ -97,8 +91,7 @@ if ( FILTER==1 ) {
  # at least 1 read per million in n of the samples, where n is the size of the smallest group of replicates 
  # However, we use TPM for filtering
  # could use abundance/TPM as a countoff here.
- use = rowSums(d$tpm >1) >= min(table(group))  # num smallest group size reps at least > 1 tpm
- #use = rowSums(cpm(d$counts) >1) >= min(table(d$samples$group))  # num smallest group size reps at least > 1 cpm
+ use = rowSums(cpm(d$counts) >1) >= min(table(group))  # num smallest group size reps at least > 1 tpm
 
  # apply filter
  d <- d[use,]
@@ -142,13 +135,13 @@ topTags(de.com)
 
 dge <- de.com$table
 dge$FDR <- p.adjust(method="fdr",p=dge$PValue)
-datasub <- cbind(dge, d$counts, d$tpm)
+datasub <- cbind(dge, d$tpm)
 
 # print table
 # problem always rownames column gets no header string
 # we fix it with this workaround over a data.frame
 write.table(data.frame("Genes"=rownames(datasub), datasub),
-            file=paste(time, "edgeR_DE-CONTROL-VS-TREAT.txt", sep="_"),
+            file=paste(time, "salmon_edgeR_DE-CONTROL-VS-TREAT.txt", sep="_"),
             append=FALSE,
             quote=FALSE,
             sep="\t",

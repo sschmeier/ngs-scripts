@@ -50,8 +50,7 @@ files <- file.path(samples[,4])
 txi <- tximport(files = files,
                 type="salmon",
                 tx2gene = t2g,
-                reader=read_tsv,
-                countsFromAbundance="lengthScaledTPM")
+                reader=read_tsv)
 
 # The txi$abundance colSums might not sum up to 1e6 (as TPMs should),
 # as some transcripts might be not asinged to genes 
@@ -59,7 +58,6 @@ txi <- tximport(files = files,
 
 # set colnames from samples.txt col3
 colnames(txi$counts) <- samples[,3]
-colnames(txi$abundance) <- paste(samples[,3],'TPM',sep='_')
 
 # https://bioconductor.org/packages/devel/bioc/vignettes/tximport/inst/doc/tximport.html#edger
 cts <- txi$counts
@@ -72,14 +70,14 @@ d$offset <- t(t(log(normMat)) + o)
 d = estimateCommonDisp(d)
 d = estimateTagwiseDisp(d)
 
-#datasub <- cbind(d$counts, cpm(d))
-datasub <- cpm(d)
+#datasub <- cbind(d$counts, cpm(d, log=TRUE))
+datasub <- cpm(d, log=TRUE)
 
 # print table
 # problem always rownames column gets no header string
 # we fix it with this workaround over a data.frame
 write.table(data.frame("Genes"=rownames(datasub), datasub),
-            file=paste(time, "salmon_edgeR_TMMTPM.txt", sep="_"),
+            file=paste(time, "salmon_edgeR_LOG2TMMTPM.txt", sep="_"),
             append=FALSE,
             quote=FALSE,
             sep="\t",
