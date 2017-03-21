@@ -33,6 +33,7 @@
 library(tximport)
 library(methods)
 library(readr)
+library(edgeR)
 
 # better log transform -> inverse hyperbolic sine
 #ihs <- function(x) { return(log(x + (x^2+1)^0.5)) }
@@ -58,13 +59,10 @@ txi <- tximport(files = files,
                 reader=read_tsv,
                 countsFromAbundance=mscale)
 
-# set colnames from samples.txt col3
-colnames(txi$counts) <- samples[,3]
-colnames(txi$abundance) <- paste(samples[,3],'TPM',sep='_')
+# use edgeR to calc cpm but do not normalised libsizes, use ihs for log-transform
+ctpm <- ihs(cpm(txi$counts, normalized.lib.sizes=FALSE, log=FALSE))
+colnames(ctpm) <- samples[,3]
 
-# get table with tximport gene-summed TPM and estimated counts 
-ctpm <- ihs(txi$abundance)  # log transform
-#ctpm <- cbind(txi$counts, log2(txi$abundance+1))
 write.table(data.frame("Genes"=rownames(ctpm), ctpm),
             file="",
             append=FALSE,

@@ -70,8 +70,7 @@ d$offset <- t(t(log(normMat)) + o)
 d = estimateCommonDisp(d)
 d = estimateTagwiseDisp(d)
 
-#datasub <- cbind(d$counts, cpm(d, log=TRUE))
-datasub <- cpm(d, log=TRUE)
+datasub <- asinh(cpm(d, log=FALSE))
 
 # print table
 # problem always rownames column gets no header string

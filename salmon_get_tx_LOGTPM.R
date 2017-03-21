@@ -59,13 +59,10 @@ txi <- tximport(files = files,
                 countsFromAbundance=mscale,
                 txOut=TRUE)
 
-# set colnames from samples.txt col3
-colnames(txi$counts) <- samples[,3]
-colnames(txi$abundance) <- paste(samples[,3],'TPM',sep='_')
+# use edgeR to calc cpm but do not normalised libsizes, use ihs for log-transform
+ctpm <- ihs(cpm(txi$counts, normalized.lib.sizes=FALSE, log=FALSE))
+colnames(ctpm) <- samples[,3]
 
-# get table with tximport gene-summed TPM and estimated counts 
-#ctpm <- cbind(txi$counts, log2(txi$abundance+1))
-ctpm <- ihs(txi$abundance)  # log transform
 write.table(data.frame("Tx"=rownames(ctpm), ctpm),
             file="",
             append=FALSE,
