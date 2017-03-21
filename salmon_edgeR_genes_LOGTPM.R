@@ -60,6 +60,7 @@ txi <- tximport(files = files,
 colnames(txi$counts) <- samples[,3]
 
 # https://bioconductor.org/packages/devel/bioc/vignettes/tximport/inst/doc/tximport.html#edger
+## THIS METHOD IS THE SAME: AS tximport with countsFromAbundances = 'no'
 cts <- txi$counts
 normMat <- txi$length
 normMat <- normMat/exp(rowMeans(log(normMat)))
