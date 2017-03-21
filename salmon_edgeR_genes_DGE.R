@@ -63,8 +63,6 @@ o <- log(calcNormFactors(cts/normMat)) + log(colSums(cts/normMat))
 d <- DGEList(cts, group=group)
 d$offset <- t(t(log(normMat)) + o)
 # d is now ready for estimate dispersion functions see edgeR User's Guide
-d = estimateCommonDisp(d)
-d = estimateTagwiseDisp(d)
 
 d$tpm = cpm(d, log=TRUE)
 
@@ -106,18 +104,12 @@ if ( FILTER==1 ) {
 
  # edgeR DE	
  # We could adjsut lib-sizes as oposed to original count table, problem?
- # d$samples$lib.size = colSums(d$counts)
+ #d$samples$lib.size = colSums(d$counts)
 }
 #--------------------------------------------------------------------
 
-# we are NOT normalising with edgeR.
-# we use already adjusted counts from tximport
-# also not clear if we need to do TMM between-sample normalisation or if this is done already through tximport
-# supposedly we don't normalise again.
-# d <- calcNormFactors(d, method="TMM") 
-#d = estimateCommonDisp(d)
-#d = estimateTagwiseDisp(d)
-d = estimateDisp(d)
+d = estimateCommonDisp(d)
+d = estimateTagwiseDisp(d)
 
 de.com = exactTest(d)
 

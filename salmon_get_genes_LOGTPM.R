@@ -1,7 +1,7 @@
 #!/usr/bin/Rscript
 #
 # Summarize salmon produced transcript counts and TPM for genes.
-# Will output tximport transformed/normalised counts.
+# Will output tximport transformed/normalised counts and log2TPM to standard out.
 #
 # WRITES TO STDOUT.
 # 
@@ -26,11 +26,20 @@
 #    15d-PGJ2        rep2    SRR4048974      ./quants/SRR4048974/quant.sf
 #    15d-PGJ2        rep3    SRR4048975      ./quants/SRR4048975/quant.sf
 #
-
+# METHOD-OF-SCALING: no, scaledTPM, lengthScaledTPM
+#
+# USAGE: script.R METHOD-OF-SCALING
+#
 library(tximport)
-library(edgeR)
 library(methods)
 library(readr)
+
+# better log transform -> inverse hyperbolic sine
+#ihs <- function(x) { return(log(x + (x^2+1)^0.5)) }
+ihs <- asinh
+
+args <- commandArgs(trailingOnly = TRUE)
+mscale <- args[1]
 
 # tx_gene_map.txt e.g.
 t2g <- read.table(file.path('.', "tx_gene_map.txt"), header = FALSE)
@@ -47,14 +56,15 @@ txi <- tximport(files = files,
                 type="salmon",
                 tx2gene = t2g,
                 reader=read_tsv,
-                countsFromAbundance="lengthScaledTPM")
+                countsFromAbundance=mscale)
 
 # set colnames from samples.txt col3
 colnames(txi$counts) <- samples[,3]
 colnames(txi$abundance) <- paste(samples[,3],'TPM',sep='_')
 
 # get table with tximport gene-summed TPM and estimated counts 
-ctpm <- cbind(txi$counts, txi$abundance)
+ctpm <- ihs(txi$abundance)  # log transform
+#ctpm <- cbind(txi$counts, log2(txi$abundance+1))
 write.table(data.frame("Genes"=rownames(ctpm), ctpm),
             file="",
             append=FALSE,
