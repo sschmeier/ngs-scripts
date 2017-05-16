@@ -25,13 +25,13 @@ if [[ $# -eq 0 ]] ; then
 fi
 
 INDEX=$1
-DIR=$2
+DIRIN=$2
 TYPE=$3
 GFF=$4
 # create base out dir
 mkdir -p ./quants
 
-for FQ in $(find $DIR -name '*.fastq.gz'); do
+for FQ in $(find $DIRIN -name '*.fastq.gz'); do
     if [[ $TYPE == "PE" ]]; then	
         # skip if _2.fastq in filename as these are processed with _1.fastq files
         if [[ $FQ == *"_2.fastq"* ]]; then

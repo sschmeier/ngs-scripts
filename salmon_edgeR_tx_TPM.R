@@ -23,6 +23,11 @@
 #    15d-PGJ2        rep2    SRR4048974      ./quants/SRR4048974/quant.sf
 #    15d-PGJ2        rep3    SRR4048975      ./quants/SRR4048975/quant.sf
 #
+#
+# LOG-TRANSFORM: no, cpm, ihs
+#
+# USAGE: script.R LOG-TRANSFORM
+#
 time <- format(Sys.time(), "%Y%m%d-%H%M%S")
 library(tximport)
 library(edgeR)
@@ -39,6 +44,9 @@ samples <- read.table(file.path('.', "samples.txt"), header = FALSE)
 # some information about the groupings of samples from samples.txt col1
 group <- samples[,1]
 
+# do log transform?
+dolog <- args[1]
+
 # create desgin matrix
 #design <- model.matrix(~group)
 
@@ -50,7 +58,8 @@ files <- file.path(samples[,4])
 txi <- tximport(files = files,
                 type="salmon",
                 tx2gene = t2g,
-                reader=read_tsv)
+                reader=read_tsv,
+                txOut=TRUE)
 
 # The txi$abundance colSums might not sum up to 1e6 (as TPMs should),
 # as some transcripts might be not asinged to genes 
@@ -71,12 +80,21 @@ d$offset <- t(t(log(normMat)) + o)
 d = estimateCommonDisp(d)
 d = estimateTagwiseDisp(d)
 
-datasub <- asinh(cpm(d, log=FALSE))
+if ( dolog=="ihs" ) {
+    # use edgeR but do not normalise. Use inverse hyperbolic sine form log transform
+    ctpm <- asinh(cpm(d, log=FALSE))
+} else if ( dolog="cpm" ) {
+    # use edgeR to calc cpm but do not normalised libsizes
+    ctpm <- cpm(d, log=TRUE)
+} else {
+    # use edgeR to calc cpm but do not normalised libsizes, no log -transform is applied
+    ctpm <- cpm(d, log=FALSE)
+}
 
 # print table
 # problem always rownames column gets no header string
 # we fix it with this workaround over a data.frame
-write.table(data.frame("Genes"=rownames(datasub), datasub),
+write.table(data.frame("Genes"=rownames(ctpm), ctpm),
             file="", # stdout
             #file=paste(time, "salmon_edgeR_LOG2TMMTPM.txt", sep="_"),
             append=FALSE,

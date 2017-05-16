@@ -1,7 +1,7 @@
 #!/usr/bin/Rscript
 #
 # Summarize salmon produced transcript counts and TPM for genes.
-# Will output tximport transformed/normalised counts and log2TPM to standard out.
+# Will output tximport transformed/normalised counts and TPM (potentially log) to standard out.
 #
 # WRITES TO STDOUT.
 # 
@@ -28,8 +28,11 @@
 #
 # METHOD-OF-SCALING: no, scaledTPM, lengthScaledTPM
 #
-# USAGE: script.R METHOD-OF-SCALING
+# LOG-TRANSFORM: no, cpm, ihs
 #
+# USAGE: script.R METHOD-OF-SCALING LOG-TRANSFORM
+#
+time <- format(Sys.time(), "%Y%m%d-%H%M%S")
 library(tximport)
 library(methods)
 library(readr)
@@ -41,6 +44,7 @@ ihs <- asinh
 
 args <- commandArgs(trailingOnly = TRUE)
 mscale <- args[1]
+dolog <- args[2]
 
 # tx_gene_map.txt e.g.
 t2g <- read.table(file.path('.', "tx_gene_map.txt"), header = FALSE)
@@ -50,6 +54,7 @@ samples <- read.table(file.path('.', "samples.txt"), header = FALSE)
 
 # load salmon files specified in samples.txt col4
 files <- file.path(samples[,4])
+
 # estimate adjusted counts from TPMs
 # Based on tximport:
 # https://bioconductor.org/packages/release/bioc/vignettes/tximport/inst/doc/tximport.html
@@ -59,14 +64,21 @@ txi <- tximport(files = files,
                 reader=read_tsv,
                 countsFromAbundance=mscale)
 
-# use edgeR to calc cpm but do not normalised libsizes, use ihs for log-transform
-ctpm <- ihs(cpm(txi$counts, normalized.lib.sizes=FALSE, log=FALSE))
-colnames(ctpm) <- samples[,3]
+if ( dolog=="ihs" ) {
+    # use edgeR but do not normalise. Use inverse hyperbolic sine form log transform
+    ctpm <- ihs(cpm(txi$counts, normalized.lib.sizes=FALSE, log=FALSE))
+} else if ( dolog="cpm" ) {
+    # use edgeR to calc cpm but do not normalised libsizes
+    ctpm <- cpm(txi$counts, normalized.lib.sizes=FALSE, log=TRUE)
+} else {
+    # use edgeR to calc cpm but do not normalised libsizes, no log -transform is applied
+    ctpm <- cpm(txi$counts, normalized.lib.sizes=FALSE, log=FALSE)
+}
 
+colnames(ctpm) <- samples[,3]
 write.table(data.frame("Genes"=rownames(ctpm), ctpm),
             file="",
             append=FALSE,
             quote=FALSE,
             sep="\t",
             row.names=FALSE)
-

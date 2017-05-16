@@ -28,7 +28,9 @@
 #
 # METHOD-OF-SCALING: no, scaledTPM, lengthScaledTPM
 #
-# USAGE: script.R METHOD-OF-SCALING
+# LOG-TRANSFORM: no, cpm, ihs
+#
+# USAGE: script.R METHOD-OF-SCALING LOG-TRANSFORM
 #
 library(tximport)
 library(methods)
@@ -40,6 +42,7 @@ ihs <- asinh
 
 args <- commandArgs(trailingOnly = TRUE)
 mscale <- args[1]
+dolog <- args[2]
 
 # tx_gene_map.txt e.g.
 t2g <- read.table(file.path('.', "tx_gene_map.txt"), header = FALSE)
@@ -59,10 +62,18 @@ txi <- tximport(files = files,
                 countsFromAbundance=mscale,
                 txOut=TRUE)
 
-# use edgeR to calc cpm but do not normalised libsizes, use ihs for log-transform
-ctpm <- ihs(cpm(txi$counts, normalized.lib.sizes=FALSE, log=FALSE))
-colnames(ctpm) <- samples[,3]
+if ( dolog=="ihs" ) {
+    # use edgeR but do not normalise. Use inverse hyperbolic sine form log transform
+    ctpm <- ihs(cpm(txi$counts, normalized.lib.sizes=FALSE, log=FALSE))
+} else if ( dolog="cpm" ) {
+    # use edgeR to calc cpm but do not normalised libsizes
+    ctpm <- cpm(txi$counts, normalized.lib.sizes=FALSE, log=TRUE)
+} else {
+    # use edgeR to calc cpm but do not normalised libsizes, no log -transform is applied
+    ctpm <- cpm(txi$counts, normalized.lib.sizes=FALSE, log=FALSE)
+}
 
+colnames(ctpm) <- samples[,3]
 write.table(data.frame("Tx"=rownames(ctpm), ctpm),
             file="",
             append=FALSE,
