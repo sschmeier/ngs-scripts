@@ -32,15 +32,23 @@ for i in `find ${dir} -name *.fastq.gz`; do
     # --outFilterMultimapNmax 1 = filter out multimappers
     # --genomeLoad LoadAndKeep = will load the genomindex specified 
     # if not already loaded and will keep it in MEM for subsequent runs
-    nice STAR --outFileNamePrefix ${outdir_2}/$(basename ${i} | sed 's/.fastq.gz/_/g') \
-         --limitBAMsortRAM 20000000000 \
-         --genomeLoad LoadAndKeep \
-         --outFilterMultimapNmax 1 \
-         --outSAMtype BAM SortedByCoordinate \
-         --runThreadN 2 \
-         --genomeDir ${genomeindex} \
-         --readFilesCommand zcat \
-         --readFilesIn ${i} 2>> ${errfile} >> ${outfile}; 
+    nice STAR --readFilesIn ${i} \ 
+         --outFileNamePrefix ${outdir_2}/$(basename ${i} | sed 's/.fastq.gz/_/g') \ 
+         --limitBAMsortRAM 20000000000 \ 
+         --genomeLoad LoadAndKeep \ 
+         --outFilterMultimapNmax 20 \ 
+         --outSAMtype BAM SortedByCoordinate \ 
+         --runThreadN 4 \ 
+         --outFilterType BySJout \ 
+         --alignSJoverhangMin 8 \ 
+         --alignSJDBoverhangMin 1 \ 
+         --outFilterMismatchNmax 999 \ 
+         --alignIntronMin 20 \ 
+         --alignIntronMax 1000000 \ 
+         --alignMatesGapMax 1000000 \ 
+         --outReadsUnmapped Fastx \ 
+         --genomeDir ${genomeindex} \ 
+         --readFilesCommand zcat 2>> ${errfile} >> ${outfile}; 
 
     echo "----------" >> ${errfile};
     echo "----------" >> ${outfile};
