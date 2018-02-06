@@ -1,9 +1,11 @@
 #!/usr/bin/Rscript
 #
-# Analysing featurecounts produced transcript counts for DGE.
+# Analysing counts for DGE.
 #
 #
 # Expects two files:
+#
+#  counts.txt, header with samples, first column genes
 #
 #  samples.txt, sample information,
 #               col1 which is used to estbalish groups
@@ -18,12 +20,17 @@
 #    15d-PGJ2,rep3,SRR4048975
 #
 
+args <- commandArgs(trailingOnly = TRUE)
 
+if ( length(args)<1 ) {
+   stop("USAGE:script.R counts.txt samples.txt")
+}
 
-counts <- read.delim(file.path('.', "raw_data_72hr.txt"), sep="\t", header = TRUE, row.names=1)
+file<-args[1]
+samples<-args[2]
 
-# samples.txt
-samples <- read.table(file.path('.', "samples.txt"), header = FALSE, sep=",")
+counts <- read.delim(file.path('.', file), sep="\t", header = TRUE, row.names=1)
+samples <- read.table(file.path('.', samples), header = FALSE, sep=",")
 
 # some information about the groupings of samples
 group <- samples[,1]

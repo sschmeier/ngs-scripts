@@ -19,8 +19,6 @@ robu <- as.logical(args[3])
 out  <- args[4]
 
 counts <- read.delim(file.path('.', file), sep="\t", header = TRUE, row.names=1)
-#counts <- read.delim(file.path('.', "120308_samples_from_Roy_updated_raw.txt"), sep="\t", header = TRUE, row.names=1)
-
 
 library(edgeR)
 library(methods)
